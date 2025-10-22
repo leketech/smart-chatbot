@@ -1,0 +1,5 @@
+node_modules/
+coverage/
+lambda_function.zip
+package-lock.json
+yarn.lock
