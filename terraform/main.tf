@@ -210,7 +210,7 @@ resource "aws_iam_role_policy_attachment" "lex_policy" {
 ######################
 # Lex Bot (Simplified)
 ######################
-resource "aws_lexv2_models_bot" "chatbot" {
+resource "aws_lexv2models_bot" "chatbot" {
   name                        = "SmartChatbotDevBot"
   role_arn                    = aws_iam_role.lex_role.arn
   idle_session_ttl_in_seconds = 300
@@ -220,8 +220,8 @@ resource "aws_lexv2_models_bot" "chatbot" {
   }
 }
 
-resource "aws_lexv2_models_bot_locale" "en_us" {
-  bot_id      = aws_lexv2_models_bot.chatbot.id
+resource "aws_lexv2models_bot_locale" "en_us" {
+  bot_id      = aws_lexv2models_bot.chatbot.id
   bot_version = "DRAFT"
   locale_id   = "en_US"
 
@@ -232,10 +232,10 @@ resource "aws_lexv2_models_bot_locale" "en_us" {
   }
 }
 
-resource "aws_lexv2_models_intent" "greeting" {
-  bot_id      = aws_lexv2_models_bot.chatbot.id
+resource "aws_lexv2models_intent" "greeting" {
+  bot_id      = aws_lexv2models_bot.chatbot.id
   bot_version = "DRAFT"
-  locale_id   = aws_lexv2_models_bot_locale.en_us.locale_id
+  locale_id   = aws_lexv2models_bot_locale.en_us.locale_id
   name        = "CustomGreetingIntent"
 
   fulfillment_code_hook {
@@ -262,10 +262,10 @@ resource "aws_lexv2_models_intent" "greeting" {
   }
 }
 
-resource "aws_lexv2_models_intent" "help" {
-  bot_id      = aws_lexv2_models_bot.chatbot.id
+resource "aws_lexv2models_intent" "help" {
+  bot_id      = aws_lexv2models_bot.chatbot.id
   bot_version = "DRAFT"
-  locale_id   = aws_lexv2_models_bot_locale.en_us.locale_id
+  locale_id   = aws_lexv2models_bot_locale.en_us.locale_id
   name        = "CustomHelpIntent"
 
   fulfillment_code_hook {
@@ -289,10 +289,10 @@ resource "aws_lexv2_models_intent" "help" {
   }
 }
 
-resource "aws_lexv2_models_intent" "fallback" {
-  bot_id      = aws_lexv2_models_bot.chatbot.id
+resource "aws_lexv2models_intent" "fallback" {
+  bot_id      = aws_lexv2models_bot.chatbot.id
   bot_version = "DRAFT"
-  locale_id   = aws_lexv2_models_bot_locale.en_us.locale_id
+  locale_id   = aws_lexv2models_bot_locale.en_us.locale_id
   name        = "CustomFallbackIntent"
 
   fulfillment_code_hook {
@@ -310,8 +310,8 @@ resource "aws_lexv2_models_intent" "fallback" {
   }
 }
 
-resource "aws_lexv2_models_bot_version" "v1" {
-  bot_id      = aws_lexv2_models_bot.chatbot.id
+resource "aws_lexv2models_bot_version" "v1" {
+  bot_id      = aws_lexv2models_bot.chatbot.id
   description = "Version 1 of chatbot"
 
   locale_specification = {
@@ -321,13 +321,13 @@ resource "aws_lexv2_models_bot_version" "v1" {
   }
 }
 
-resource "aws_lexv2_models_bot_alias" "prod" {
-  bot_id      = aws_lexv2_models_bot.chatbot.id
-  bot_version = aws_lexv2_models_bot_version.v1.bot_version
+resource "aws_lexv2models_bot_alias" "prod" {
+  bot_id      = aws_lexv2models_bot.chatbot.id
+  bot_version = aws_lexv2models_bot_version.v1.bot_version
   name        = "prod"
 
   depends_on = [
-    aws_lexv2_models_bot_version.v1
+    aws_lexv2models_bot_version.v1
   ]
 }
 
