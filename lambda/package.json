@@ -5,13 +5,13 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "test": "jest --coverage --config=jest.config.js",
-    "test:watch": "jest --watch --config=jest.config.js",
+    "test": "jest --coverage --config=jest.config.cjs",
+    "test:watch": "jest --watch --config=jest.config.cjs",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "package": "rm -f ../lambda_function.zip && zip -r ../lambda_function.zip . -x '*.test.js' 'jest.config.js' '.eslintrc.json' 'coverage/*' 'node_modules/.cache/*'",
+    "package": "rm -f ../lambda_function.zip && zip -r ../lambda_function.zip . -x '*.test.js' 'jest.config.cjs' '.eslintrc.json' 'coverage/*' 'node_modules/.cache/*'",
     "validate": "npm run lint && npm run format:check && npm run test"
   },
   "keywords": [
