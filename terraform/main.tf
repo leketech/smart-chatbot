@@ -107,8 +107,8 @@ resource "aws_iam_role_policy" "lambda_lex" {
           "lex:RecognizeUtterance"
         ]
         Resource = [
-          "arn:aws:lex:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:bot/${aws_lex_bot.chatbot.id}:*",
-          "arn:aws:lex:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:bot-alias/${aws_lex_bot.chatbot.name}/${aws_lex_bot_alias.prod.name}"
+          "arn:aws:lex:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:bot/${aws_lexv2_models_bot.chatbot.id}:*",
+          "arn:aws:lex:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:bot-alias/${aws_lexv2_models_bot.chatbot.id}/${aws_lexv2_models_bot_alias.prod.id}"
         ]
       }
     ]
@@ -150,8 +150,8 @@ resource "aws_lambda_function" "chatbot" {
       ENVIRONMENT      = var.environment
       LOG_LEVEL        = var.log_level
       PROJECT          = var.project_name
-      LEX_BOT_ID       = aws_lex_bot.chatbot.id
-      LEX_BOT_ALIAS_ID = aws_lex_bot_alias.prod.id
+      LEX_BOT_ID       = aws_lexv2_models_bot.chatbot.id
+      LEX_BOT_ALIAS_ID = aws_lexv2_models_bot_alias.prod.id
     }
   }
 
@@ -208,99 +208,127 @@ resource "aws_iam_role_policy_attachment" "lex_policy" {
 }
 
 ######################
-# Lex Bot
+# Lex Bot (Simplified)
 ######################
-resource "aws_lex_bot" "chatbot" {
+resource "aws_lexv2_models_bot" "chatbot" {
   name                        = "SmartChatbotDevBot"
   role_arn                    = aws_iam_role.lex_role.arn
   idle_session_ttl_in_seconds = 300
-  child_directed             = false
 
-  abort_statement {
-    message {
-      content      = "Sorry, I didn't understand. Goodbye."
-      content_type = "PlainText"
-    }
-  }
-
-  clarification_prompt {
-    max_attempts = 2
-    message {
-      content      = "I didn't understand you, what would you like to do?"
-      content_type = "PlainText"
-    }
-  }
-
-  intent {
-    intent_name    = aws_lex_intent.greeting.name
-    intent_version = "1"
-  }
-
-  intent {
-    intent_name    = aws_lex_intent.help.name
-    intent_version = "1"
-  }
-
-  intent {
-    intent_name    = aws_lex_intent.fallback.name
-    intent_version = "1"
+  data_privacy {
+    child_directed = false
   }
 }
 
-resource "aws_lex_intent" "greeting" {
+resource "aws_lexv2_models_bot_locale" "en_us" {
+  bot_id      = aws_lexv2_models_bot.chatbot.id
+  bot_version = "DRAFT"
+  locale_id   = "en_US"
+
+  n_lu_intent_confidence_threshold = 0.40
+
+  voice_settings {
+    voice_id = "Joanna"
+  }
+}
+
+resource "aws_lexv2_models_intent" "greeting" {
+  bot_id      = aws_lexv2_models_bot.chatbot.id
+  bot_version = "DRAFT"
+  locale_id   = aws_lexv2_models_bot_locale.en_us.locale_id
   name        = "CustomGreetingIntent"
-  description = "Greeting intent"
 
-  fulfillment_activity {
-    type = "ReturnIntent"
+  fulfillment_code_hook {
+    enabled = false
   }
 
-  sample_utterances = [
-    "hello",
-    "hi",
-    "hey",
-    "good morning",
-    "good afternoon",
-    "greetings"
-  ]
+  sample_utterance {
+    utterance = "hello"
+  }
+  sample_utterance {
+    utterance = "hi"
+  }
+  sample_utterance {
+    utterance = "hey"
+  }
+  sample_utterance {
+    utterance = "good morning"
+  }
+  sample_utterance {
+    utterance = "good afternoon"
+  }
+  sample_utterance {
+    utterance = "greetings"
+  }
 }
 
-resource "aws_lex_intent" "help" {
+resource "aws_lexv2_models_intent" "help" {
+  bot_id      = aws_lexv2_models_bot.chatbot.id
+  bot_version = "DRAFT"
+  locale_id   = aws_lexv2_models_bot_locale.en_us.locale_id
   name        = "CustomHelpIntent"
-  description = "Help intent"
 
-  fulfillment_activity {
-    type = "ReturnIntent"
+  fulfillment_code_hook {
+    enabled = false
   }
 
-  sample_utterances = [
-    "help",
-    "what can you do",
-    "what are your capabilities",
-    "how do you work",
-    "what can I ask"
-  ]
+  sample_utterance {
+    utterance = "help"
+  }
+  sample_utterance {
+    utterance = "what can you do"
+  }
+  sample_utterance {
+    utterance = "what are your capabilities"
+  }
+  sample_utterance {
+    utterance = "how do you work"
+  }
+  sample_utterance {
+    utterance = "what can I ask"
+  }
 }
 
-resource "aws_lex_intent" "fallback" {
+resource "aws_lexv2_models_intent" "fallback" {
+  bot_id      = aws_lexv2_models_bot.chatbot.id
+  bot_version = "DRAFT"
+  locale_id   = aws_lexv2_models_bot_locale.en_us.locale_id
   name        = "CustomFallbackIntent"
-  description = "Fallback intent"
 
-  fulfillment_activity {
-    type = "ReturnIntent"
+  fulfillment_code_hook {
+    enabled = false
   }
 
-  sample_utterances = [
-    "I don't know",
-    "what is this",
-    "can you explain"
-  ]
+  sample_utterance {
+    utterance = "I don't know"
+  }
+  sample_utterance {
+    utterance = "what is this"
+  }
+  sample_utterance {
+    utterance = "can you explain"
+  }
 }
 
-resource "aws_lex_bot_alias" "prod" {
-  name    = "prod"
-  bot_name = aws_lex_bot.chatbot.name
-  bot_version = "$LATEST"
+resource "aws_lexv2_models_bot_version" "v1" {
+  bot_id      = aws_lexv2_models_bot.chatbot.id
+  description = "Version 1 of chatbot"
+
+  locale_specification = {
+    "en_US" = {
+      source_bot_version = "DRAFT"
+    }
+  }
+}
+
+resource "aws_lexv2_models_bot_alias" "prod" {
+  bot_id      = aws_lexv2_models_bot.chatbot.id
+  bot_version = aws_lexv2_models_bot_version.v1.bot_version
+  name        = "prod"
+
+  depends_on = [
+    aws_lexv2_models_bot_version.v1
+  ]
 }
 
 ######################
