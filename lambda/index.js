@@ -1,10 +1,15 @@
 // Lambda handler for smart chatbot with Lex integration
-import { LexRuntimeV2Client, RecognizeTextCommand } from '@aws-sdk/client-lex-runtime-v2';
+import {
+  LexRuntimeV2Client,
+  RecognizeTextCommand,
+} from '@aws-sdk/client-lex-runtime-v2';
 
 // Create Lex client
-const lexClient = new LexRuntimeV2Client({ region: process.env.AWS_REGION || 'us-east-1' });
+const lexClient = new LexRuntimeV2Client({
+  region: process.env.AWS_REGION || 'us-east-1',
+});
 
-export const handler = async event => {
+export const handler = async (event) => {
   // eslint-disable-next-line no-console
   console.log('Received event:', JSON.stringify(event, null, 2));
 
@@ -68,10 +73,10 @@ async function handleApiGatewayEvent(event) {
     };
 
     console.log('Calling Lex with params:', JSON.stringify(lexParams, null, 2));
-    
+
     const command = new RecognizeTextCommand(lexParams);
     const lexResponse = await lexClient.send(command);
-    
+
     console.log('Lex response:', JSON.stringify(lexResponse, null, 2));
 
     // Extract the message from Lex response
@@ -93,7 +98,7 @@ async function handleApiGatewayEvent(event) {
     };
   } catch (error) {
     console.error('Error calling Lex:', error);
-    
+
     // Fallback to simple response logic
     return getFallbackResponse(message);
   }
@@ -138,8 +143,12 @@ function handleLexEvent(event) {
 function getFallbackResponse(message) {
   // Simple intent recognition based on keywords
   const lowerMessage = message.toLowerCase();
-  
-  if (lowerMessage.includes('hello') || lowerMessage.includes('hi') || lowerMessage.includes('hey')) {
+
+  if (
+    lowerMessage.includes('hello') ||
+    lowerMessage.includes('hi') ||
+    lowerMessage.includes('hey')
+  ) {
     return {
       statusCode: 200,
       headers: {
@@ -159,7 +168,8 @@ function getFallbackResponse(message) {
         'Access-Control-Allow-Origin': '*',
       },
       body: JSON.stringify({
-        message: 'I can help you with general questions. You can ask me about our services, products, or just chat with me!',
+        message:
+          'I can help you with general questions. You can ask me about our services, products, or just chat with me!',
         sessionId: 'default-session',
       }),
     };
@@ -175,7 +185,10 @@ function getFallbackResponse(message) {
         sessionId: 'default-session',
       }),
     };
-  } else if (lowerMessage.includes('bye') || lowerMessage.includes('goodbye')) {
+  } else if (
+    lowerMessage.includes('bye') ||
+    lowerMessage.includes('goodbye')
+  ) {
     return {
       statusCode: 200,
       headers: {
@@ -183,7 +196,8 @@ function getFallbackResponse(message) {
         'Access-Control-Allow-Origin': '*',
       },
       body: JSON.stringify({
-        message: 'Goodbye! Feel free to come back if you have more questions.',
+        message:
+          'Goodbye! Feel free to come back if you have more questions.',
         sessionId: 'default-session',
       }),
     };
