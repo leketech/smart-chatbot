@@ -211,7 +211,7 @@ resource "aws_iam_role_policy_attachment" "lex_policy" {
 # Lex Bot (Simplified)
 ######################
 resource "aws_lexv2models_bot" "chatbot" {
-  name                        = "SmartChatbotDevBot-${var.environment}"
+  name                        = "SmartChatbot-${var.environment}-${random_string.suffix.result}"
   role_arn                    = aws_iam_role.lex_role.arn
   idle_session_ttl_in_seconds = 300
 
@@ -219,9 +219,17 @@ resource "aws_lexv2models_bot" "chatbot" {
     child_directed = false
   }
 
-  lifecycle {
-    prevent_destroy = false
+  tags = {
+    Name        = "SmartChatbot-${var.environment}"
+    Environment = var.environment
+    Project     = var.project_name
   }
+}
+
+resource "random_string" "suffix" {
+  length  = 8
+  special = false
+  upper   = false
 }
 
 resource "aws_lexv2models_bot_locale" "en_us" {
