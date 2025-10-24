@@ -106,7 +106,7 @@ async function handleApiGatewayEvent(event) {
     console.error('Error calling Lex:', error);
 
     // Fallback to simple response logic
-    return getFallbackResponse(message);
+    return getFallbackResponse(message, sessionId);
   }
 }
 
@@ -146,7 +146,7 @@ function handleLexEvent(event) {
   };
 }
 
-function getFallbackResponse(message) {
+function getFallbackResponse(message, sessionId = 'default-session') {
   // Simple intent recognition based on keywords
   const lowerMessage = message.toLowerCase();
 
@@ -164,7 +164,7 @@ function getFallbackResponse(message) {
       body: JSON.stringify({
         message:
           'Hello! Welcome to our smart chatbot. How can I help you today?',
-        sessionId: 'default-session',
+        sessionId: sessionId,
       }),
     };
   } else if (lowerMessage.includes('help')) {
@@ -177,7 +177,7 @@ function getFallbackResponse(message) {
       body: JSON.stringify({
         message:
           'I can help you with general questions. You can ask me about our services, products, or just chat with me!',
-        sessionId: 'default-session',
+        sessionId: sessionId,
       }),
     };
   } else if (lowerMessage.includes('thank')) {
@@ -189,7 +189,7 @@ function getFallbackResponse(message) {
       },
       body: JSON.stringify({
         message: "You're welcome! Is there anything else I can help you with?",
-        sessionId: 'default-session',
+        sessionId: sessionId,
       }),
     };
   } else if (lowerMessage.includes('bye') || lowerMessage.includes('goodbye')) {
@@ -200,8 +200,9 @@ function getFallbackResponse(message) {
         'Access-Control-Allow-Origin': '*',
       },
       body: JSON.stringify({
-        message: 'Goodbye! Feel free to come back if you have more questions.',
-        sessionId: 'default-session',
+        message:
+          'Goodbye! Feel free to come back if you have more questions.',
+        sessionId: sessionId,
       }),
     };
   } else {
@@ -214,7 +215,7 @@ function getFallbackResponse(message) {
       body: JSON.stringify({
         message:
           "I'm sorry, I didn't understand that. Can you please rephrase?",
-        sessionId: 'default-session',
+        sessionId: sessionId,
       }),
     };
   }
