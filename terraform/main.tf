@@ -1,5 +1,5 @@
 terraform {
-  required_version = ">= 1.0"
+  required_version = ">= 1.3.0"
   required_providers {
     aws = {
       source  = "hashicorp/aws"
@@ -10,8 +10,9 @@ terraform {
       version = "~> 2.4"
     }
   }
+
   backend "s3" {
-    bucket         = "your-terraform-state-bucket"
+    bucket         = "smart-chatbot-terraform-state-907849381252"
     key            = "chatbot/terraform.tfstate"
     region         = "us-east-1"
     encrypt        = true
@@ -20,7 +21,8 @@ terraform {
 }
 
 provider "aws" {
-  region = var.aws_region
+  region              = var.aws_region
+  allowed_account_ids = [var.aws_account_id]
 
   default_tags {
     tags = {
@@ -31,19 +33,26 @@ provider "aws" {
   }
 }
 
-# Data source for current AWS account
+######################
+# Data sources
+######################
 data "aws_caller_identity" "current" {}
 data "aws_region" "current" {}
 
+######################
 # Archive Lambda function code
+######################
 data "archive_file" "lambda_zip" {
-  type        = "zip"
+  type = "zip"
+  # adjust source_dir if your lambda code is in a different location
   source_dir  = "${path.module}/../lambda"
   output_path = "${path.module}/lambda_function.zip"
   excludes    = ["node_modules", "*.test.js", "coverage", ".eslintrc.json", "jest.config.js"]
 }
 
-# IAM Role for Lambda
+######################
+# IAM for Lambda
+######################
 resource "aws_iam_role" "lambda_role" {
   name = "${var.project_name}-${var.environment}-lambda-role"
 
@@ -59,7 +68,6 @@ resource "aws_iam_role" "lambda_role" {
   })
 }
 
-# Lambda execution policies
 resource "aws_iam_role_policy_attachment" "lambda_basic" {
   role       = aws_iam_role.lambda_role.name
   policy_arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
@@ -85,7 +93,31 @@ resource "aws_iam_role_policy" "lambda_cloudwatch" {
   })
 }
 
-# CloudWatch Log Group
+resource "aws_iam_role_policy" "lambda_lex" {
+  name = "${var.project_name}-${var.environment}-lambda-lex"
+  role = aws_iam_role.lambda_role.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = [
+          "lex:RecognizeText",
+          "lex:RecognizeUtterance"
+        ]
+        Resource = [
+          "arn:aws:lex:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:bot/${aws_lexv2models_bot.chatbot.id}:*",
+          "arn:aws:lex:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:bot-alias/${aws_lexv2models_bot.chatbot.id}/*"
+        ]
+      }
+    ]
+  })
+}
+
+######################
+# CloudWatch Log Groups
+######################
 resource "aws_cloudwatch_log_group" "lambda_logs" {
   name              = "/aws/lambda/${var.project_name}-${var.environment}-handler"
   retention_in_days = var.log_retention_days
@@ -95,7 +127,14 @@ resource "aws_cloudwatch_log_group" "lambda_logs" {
   }
 }
 
+resource "aws_cloudwatch_log_group" "api_gateway_logs" {
+  name              = "/aws/apigateway/${var.project_name}-${var.environment}-api"
+  retention_in_days = var.log_retention_days
+}
+
+######################
 # Lambda Function
+######################
 resource "aws_lambda_function" "chatbot" {
   filename         = data.archive_file.lambda_zip.output_path
   function_name    = "${var.project_name}-${var.environment}-handler"
@@ -108,19 +147,25 @@ resource "aws_lambda_function" "chatbot" {
 
   environment {
     variables = {
-      ENVIRONMENT = var.environment
-      LOG_LEVEL   = var.log_level
-      PROJECT     = var.project_name
+      ENVIRONMENT      = var.environment
+      LOG_LEVEL        = var.log_level
+      PROJECT          = var.project_name
+      LEX_BOT_ID       = aws_lexv2models_bot.chatbot.id
     }
   }
 
   depends_on = [
     aws_cloudwatch_log_group.lambda_logs,
-    aws_iam_role_policy_attachment.lambda_basic
+    aws_iam_role_policy_attachment.lambda_basic,
+    aws_iam_role_policy.lambda_cloudwatch,
+    aws_iam_role_policy.lambda_lex
   ]
 }
 
-# Lambda Permission for Lex
+######################
+# Lambda permissions
+######################
+# Allow Lex to invoke the Lambda
 resource "aws_lambda_permission" "lex_invoke" {
   statement_id  = "AllowLexInvoke"
   action        = "lambda:InvokeFunction"
@@ -129,7 +174,18 @@ resource "aws_lambda_permission" "lex_invoke" {
   source_arn    = "arn:aws:lex:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:bot-alias/*"
 }
 
-# IAM Role for Lex
+# Allow API Gateway to invoke the Lambda (execution ARN wildcard for all stages/methods)
+resource "aws_lambda_permission" "api_gateway" {
+  statement_id  = "AllowAPIGatewayInvoke"
+  action        = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.chatbot.function_name
+  principal     = "apigateway.amazonaws.com"
+  source_arn    = "${aws_api_gateway_rest_api.chatbot_api.execution_arn}/*/*"
+}
+
+######################
+# IAM for Lex
+######################
 resource "aws_iam_role" "lex_role" {
   name = "${var.project_name}-${var.environment}-lex-role"
 
@@ -150,142 +206,153 @@ resource "aws_iam_role_policy_attachment" "lex_policy" {
   policy_arn = "arn:aws:iam::aws:policy/AmazonLexRunBotsOnly"
 }
 
+######################
 # Lex Bot
+######################
 resource "aws_lexv2models_bot" "chatbot" {
-  name                        = "${var.project_name}-${var.environment}-bot"
+  name                        = "SmartChatbotDevBot"
   role_arn                    = aws_iam_role.lex_role.arn
   idle_session_ttl_in_seconds = 300
-  type                        = "Bot"
 
   data_privacy {
     child_directed = false
   }
-
-  depends_on = [aws_iam_role_policy_attachment.lex_policy]
 }
 
-# Lex Bot Locale
 resource "aws_lexv2models_bot_locale" "en_us" {
   bot_id      = aws_lexv2models_bot.chatbot.id
   bot_version = "DRAFT"
   locale_id   = "en_US"
 
-  n_lu_intent_confidence_threshold = 0.4
+  n_lu_intent_confidence_threshold = 0.40
 
   voice_settings {
     voice_id = "Joanna"
   }
 }
 
-# Lex Intent - Greeting
 resource "aws_lexv2models_intent" "greeting" {
   bot_id      = aws_lexv2models_bot.chatbot.id
   bot_version = "DRAFT"
   locale_id   = aws_lexv2models_bot_locale.en_us.locale_id
-  name        = "GreetingIntent"
+  name        = "CustomGreetingIntent"
+
+  fulfillment_code_hook {
+    enabled = false
+  }
 
   sample_utterance {
     utterance = "hello"
   }
+
   sample_utterance {
     utterance = "hi"
   }
+
   sample_utterance {
     utterance = "hey"
   }
+
   sample_utterance {
     utterance = "good morning"
   }
+
   sample_utterance {
     utterance = "good afternoon"
   }
 
-  fulfillment_code_hook {
-    enabled = true
+  sample_utterance {
+    utterance = "good evening"
+  }
+
+  sample_utterance {
+    utterance = "greetings"
   }
 }
 
-# Lex Intent - Help
 resource "aws_lexv2models_intent" "help" {
   bot_id      = aws_lexv2models_bot.chatbot.id
   bot_version = "DRAFT"
   locale_id   = aws_lexv2models_bot_locale.en_us.locale_id
-  name        = "HelpIntent"
+  name        = "CustomHelpIntent"
+
+  fulfillment_code_hook {
+    enabled = false
+  }
 
   sample_utterance {
     utterance = "help"
   }
+
   sample_utterance {
     utterance = "I need help"
   }
+
   sample_utterance {
     utterance = "What can you do"
   }
+
   sample_utterance {
     utterance = "assist me"
   }
 
-  fulfillment_code_hook {
-    enabled = true
+  sample_utterance {
+    utterance = "what are you capable of"
+  }
+
+  sample_utterance {
+    utterance = "how do you work"
+  }
+
+  sample_utterance {
+    utterance = "what can I ask"
   }
 }
 
-# Lex Intent - FallbackIntent (built-in)
 resource "aws_lexv2models_intent" "fallback" {
   bot_id      = aws_lexv2models_bot.chatbot.id
   bot_version = "DRAFT"
   locale_id   = aws_lexv2models_bot_locale.en_us.locale_id
-  name        = "FallbackIntent"
-
-  parent_intent_signature = "AMAZON.FallbackIntent"
+  name        = "CustomFallbackIntent"
 
   fulfillment_code_hook {
-    enabled = true
+    enabled = false
+  }
+
+  sample_utterance {
+    utterance = "I don't understand"
+  }
+
+  sample_utterance {
+    utterance = "What do you mean"
+  }
+
+  sample_utterance {
+    utterance = "Can you explain"
   }
 }
 
-# Lex Bot Version
 resource "aws_lexv2models_bot_version" "v1" {
-  bot_id = aws_lexv2models_bot.chatbot.id
+  bot_id      = aws_lexv2models_bot.chatbot.id
+  description = "Version 1 of chatbot"
 
   locale_specification = {
-    (aws_lexv2models_bot_locale.en_us.locale_id) = {
+    "en_US" = {
       source_bot_version = "DRAFT"
     }
   }
 
   depends_on = [
+    aws_lexv2models_bot_locale.en_us,
     aws_lexv2models_intent.greeting,
     aws_lexv2models_intent.help,
     aws_lexv2models_intent.fallback
   ]
 }
 
-# Lex Bot Alias
-resource "aws_lexv2models_bot_alias" "production" {
-  bot_id = aws_lexv2models_bot.chatbot.id
-  name   = var.environment
-
-  bot_alias_locale_settings {
-    bot_locale_id = aws_lexv2models_bot_locale.en_us.locale_id
-    enabled       = true
-
-    code_hook_specification {
-      lambda_code_hook {
-        lambda_arn                  = aws_lambda_function.chatbot.arn
-        code_hook_interface_version = "1.0"
-      }
-    }
-  }
-
-  bot_version = aws_lexv2models_bot_version.v1.bot_version
-
-  depends_on = [
-    aws_lambda_permission.lex_invoke
-  ]
-}
-
-# API Gateway REST API
+######################
+# API Gateway REST API + resources + methods + integrations
+######################
 resource "aws_api_gateway_rest_api" "chatbot_api" {
   name        = "${var.project_name}-${var.environment}-api"
   description = "API Gateway for Chatbot Integration"
@@ -295,14 +362,12 @@ resource "aws_api_gateway_rest_api" "chatbot_api" {
   }
 }
 
-# API Gateway Resource
 resource "aws_api_gateway_resource" "chat" {
   rest_api_id = aws_api_gateway_rest_api.chatbot_api.id
   parent_id   = aws_api_gateway_rest_api.chatbot_api.root_resource_id
   path_part   = "chat"
 }
 
-# API Gateway Method - POST
 resource "aws_api_gateway_method" "post" {
   rest_api_id   = aws_api_gateway_rest_api.chatbot_api.id
   resource_id   = aws_api_gateway_resource.chat.id
@@ -310,7 +375,6 @@ resource "aws_api_gateway_method" "post" {
   authorization = "NONE"
 }
 
-# API Gateway Method - OPTIONS (CORS)
 resource "aws_api_gateway_method" "options" {
   rest_api_id   = aws_api_gateway_rest_api.chatbot_api.id
   resource_id   = aws_api_gateway_resource.chat.id
@@ -318,7 +382,6 @@ resource "aws_api_gateway_method" "options" {
   authorization = "NONE"
 }
 
-# API Gateway Integration
 resource "aws_api_gateway_integration" "lambda" {
   rest_api_id             = aws_api_gateway_rest_api.chatbot_api.id
   resource_id             = aws_api_gateway_resource.chat.id
@@ -328,7 +391,6 @@ resource "aws_api_gateway_integration" "lambda" {
   uri                     = aws_lambda_function.chatbot.invoke_arn
 }
 
-# API Gateway Integration - OPTIONS
 resource "aws_api_gateway_integration" "options" {
   rest_api_id = aws_api_gateway_rest_api.chatbot_api.id
   resource_id = aws_api_gateway_resource.chat.id
@@ -340,7 +402,6 @@ resource "aws_api_gateway_integration" "options" {
   }
 }
 
-# API Gateway Method Response - OPTIONS
 resource "aws_api_gateway_method_response" "options" {
   rest_api_id = aws_api_gateway_rest_api.chatbot_api.id
   resource_id = aws_api_gateway_resource.chat.id
@@ -358,7 +419,6 @@ resource "aws_api_gateway_method_response" "options" {
   }
 }
 
-# API Gateway Integration Response - OPTIONS
 resource "aws_api_gateway_integration_response" "options" {
   rest_api_id = aws_api_gateway_rest_api.chatbot_api.id
   resource_id = aws_api_gateway_resource.chat.id
@@ -376,16 +436,6 @@ resource "aws_api_gateway_integration_response" "options" {
   ]
 }
 
-# Lambda Permission for API Gateway
-resource "aws_lambda_permission" "api_gateway" {
-  statement_id  = "AllowAPIGatewayInvoke"
-  action        = "lambda:InvokeFunction"
-  function_name = aws_lambda_function.chatbot.function_name
-  principal     = "apigateway.amazonaws.com"
-  source_arn    = "${aws_api_gateway_rest_api.chatbot_api.execution_arn}/*/*"
-}
-
-# API Gateway Deployment
 resource "aws_api_gateway_deployment" "chatbot" {
   rest_api_id = aws_api_gateway_rest_api.chatbot_api.id
 
@@ -409,7 +459,6 @@ resource "aws_api_gateway_deployment" "chatbot" {
   ]
 }
 
-# API Gateway Stage
 resource "aws_api_gateway_stage" "chatbot" {
   deployment_id = aws_api_gateway_deployment.chatbot.id
   rest_api_id   = aws_api_gateway_rest_api.chatbot_api.id
@@ -417,23 +466,10 @@ resource "aws_api_gateway_stage" "chatbot" {
 
   xray_tracing_enabled = true
 
-  access_log_settings {
-    destination_arn = aws_cloudwatch_log_group.api_gateway_logs.arn
-    format = jsonencode({
-      requestId      = "$context.requestId"
-      ip             = "$context.identity.sourceIp"
-      requestTime    = "$context.requestTime"
-      httpMethod     = "$context.httpMethod"
-      resourcePath   = "$context.resourcePath"
-      status         = "$context.status"
-      protocol       = "$context.protocol"
-      responseLength = "$context.responseLength"
-    })
-  }
+  # ensure log group exists before stage creation
+  depends_on = [
+    aws_api_gateway_deployment.chatbot,
+    aws_cloudwatch_log_group.api_gateway_logs
+  ]
 }
 
-# API Gateway Logs
-resource "aws_cloudwatch_log_group" "api_gateway_logs" {
-  name              = "/aws/apigateway/${var.project_name}-${var.environment}-api"
-  retention_in_days = var.log_retention_days
-}

@@ -87,7 +87,7 @@ Update `terraform/main.tf` with your S3 bucket name:
 
 ```hcl
 backend "s3" {
-  bucket         = "smart-chatbot-terraform-state-us-east-1"  # Update this
+  bucket         = "smart-chatbot-terraform-state-907849381252"  # Update this
   key            = "chatbot/terraform.tfstate"
   region         = "us-east-1"
   encrypt        = true

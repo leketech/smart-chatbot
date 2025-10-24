@@ -1,5 +1,7 @@
 # Convenience commands for smart chatbot
 
+AWS_ACCOUNT_ID ?= 907849381252
+
 .PHONY: setup test deploy destroy clean plan validate format lint help logs deploy-dev deploy-prod
 
 help:

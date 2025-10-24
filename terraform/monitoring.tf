@@ -1,11 +1,5 @@
 # CloudWatch monitoring for smart chatbot
 
-# Lambda Logs
-resource "aws_cloudwatch_log_group" "chatbot_logs" {
-  name              = "/aws/lambda/${var.project_name}-${var.environment}-handler"
-  retention_in_days = var.log_retention_days
-}
-
 # API Gateway Logs (referenced in main.tf)
 # Note: This resource is created in main.tf as aws_cloudwatch_log_group.api_gateway_logs
 # but we're adding an alarm for it here

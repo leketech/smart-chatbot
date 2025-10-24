@@ -3,9 +3,10 @@
   "version": "1.0.0",
   "description": "AWS Lambda function for smart chatbot with Lex integration",
   "main": "index.js",
+  "type": "module",
   "scripts": {
-    "test": "jest --coverage",
-    "test:watch": "jest --watch",
+    "test": "jest --coverage --config=jest.config.cjs",
+    "test:watch": "jest --watch --config=jest.config.cjs",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "format": "prettier --write .",
@@ -22,11 +23,18 @@
   ],
   "author": "",
   "license": "MIT",
-  "dependencies": {},
+  "dependencies": {
+    "@aws-sdk/client-lex-runtime-v2": "^3.699.0"
+  },
   "devDependencies": {
-    "eslint": "^8.57.0",
+    "@babel/core": "^7.28.4",
+    "@babel/preset-env": "^7.28.3",
+    "eslint": "^9.38.0",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-prettier": "^5.5.4",
+    "globals": "^16.4.0",
     "jest": "^29.7.0",
-    "prettier": "^3.2.5"
+    "prettier": "^3.6.2"
   },
   "engines": {
     "node": ">=18.0.0"
