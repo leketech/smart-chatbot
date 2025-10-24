@@ -8,6 +8,7 @@ A production-ready, enterprise-grade chatbot solution built with AWS Lambda, Ama
 ## 🌟 Features
 
 ### Core Functionality
+
 - ✅ **Natural Language Understanding** with Amazon Lex V2
 - ✅ **Serverless Architecture** using AWS Lambda
 - ✅ **RESTful API** via API Gateway
@@ -15,6 +16,7 @@ A production-ready, enterprise-grade chatbot solution built with AWS Lambda, Ama
 - ✅ **Session Tracking** and context preservation
 
 ### DevOps & Infrastructure
+
 - ✅ **Infrastructure as Code** with Terraform
 - ✅ **Automated CI/CD** with GitHub Actions
 - ✅ **Multi-Environment** support (dev, staging, prod)
@@ -23,6 +25,7 @@ A production-ready, enterprise-grade chatbot solution built with AWS Lambda, Ama
 - ✅ **Code Quality** checks (ESLint, Prettier)
 
 ### Monitoring & Observability
+
 - ✅ **CloudWatch Dashboards** for real-time metrics
 - ✅ **Automated Alerts** for errors and throttling
 - ✅ **Structured Logging** with request tracing
@@ -77,6 +80,7 @@ chmod +x scripts/setup-backend.sh
 ```
 
 This creates:
+
 - S3 bucket for Terraform state
 - DynamoDB table for state locking
 - Proper encryption and security settings
@@ -113,6 +117,7 @@ Add these secrets to your GitHub repository (Settings → Secrets → Actions):
 ### 6. Deploy to AWS
 
 **Using Make (recommended):**
+
 ```bash
 make setup              # One-time setup
 make deploy-dev         # Deploy to development
@@ -120,6 +125,7 @@ make deploy-prod        # Deploy to production
 ```
 
 **Or manually:**
+
 ```bash
 cd terraform
 terraform init
@@ -130,12 +136,14 @@ terraform apply -var="environment=dev"
 ### 7. Test the Chatbot
 
 After deployment, get your API endpoint:
+
 ```bash
 cd terraform
 terraform output api_endpoint
 ```
 
 Test with curl:
+
 ```bash
 curl -X POST https://your-api-endpoint.amazonaws.com/dev/chat \
   -H "Content-Type: application/json" \
@@ -248,6 +256,7 @@ artillery quick --count 10 --num 100 https://your-api-endpoint/chat
 ### CloudWatch Dashboards
 
 View your dashboard:
+
 ```bash
 cd terraform
 terraform output dashboard_url
@@ -269,6 +278,7 @@ aws logs tail /aws/apigateway/smart-chatbot-dev --follow
 ### Metrics
 
 Key metrics monitored:
+
 - Lambda invocations, errors, duration
 - API Gateway requests, 4XX, 5XX errors
 - Lex conversation success rate
@@ -301,13 +311,13 @@ Key metrics monitored:
 
 ### Development Environment (~$5-10/month)
 
-| Service | Usage | Cost |
-|---------|-------|------|
-| Lambda | 1M requests, 256MB, 1s avg | ~$1 |
-| Lex | 1,000 text requests | ~$5 |
-| API Gateway | 1M requests | ~$3.50 |
-| CloudWatch | Logs + Metrics | ~$1 |
-| Data Transfer | 1GB | ~$0.10 |
+| Service       | Usage                      | Cost   |
+| ------------- | -------------------------- | ------ |
+| Lambda        | 1M requests, 256MB, 1s avg | ~$1    |
+| Lex           | 1,000 text requests        | ~$5    |
+| API Gateway   | 1M requests                | ~$3.50 |
+| CloudWatch    | Logs + Metrics             | ~$1    |
+| Data Transfer | 1GB                        | ~$0.10 |
 
 ### Production Environment
 
@@ -318,6 +328,7 @@ Costs scale with usage. Use AWS Cost Explorer and set up billing alerts.
 ### Common Issues
 
 **1. Terraform Backend Error**
+
 ```bash
 # Solution: Initialize backend
 ./scripts/setup-backend.sh
@@ -325,12 +336,14 @@ cd terraform && terraform init
 ```
 
 **2. Lambda Permission Error**
+
 ```bash
 # Solution: Verify Lambda can be invoked by Lex
 aws lambda get-policy --function-name smart-chatbot-dev-handler
 ```
 
 **3. Lex Bot Not Responding**
+
 ```bash
 # Check Lambda logs
 aws logs tail /aws/lambda/smart-chatbot-dev-handler --follow
@@ -341,6 +354,7 @@ aws lambda invoke --function-name smart-chatbot-dev-handler \
 ```
 
 **4. API Gateway CORS Issues**
+
 ```bash
 # Verify OPTIONS method exists
 aws apigateway get-method \
@@ -350,6 +364,7 @@ aws apigateway get-method \
 ```
 
 **5. GitHub Actions Deployment Fails**
+
 ```bash
 # Check AWS credentials are set correctly
 # Verify IAM permissions include:
@@ -382,11 +397,11 @@ resource "aws_lexv2models_intent" "new_intent" {
   bot_version = "DRAFT"
   locale_id   = aws_lexv2models_bot_locale.en_us.locale_id
   name        = "NewIntent"
-  
+
   sample_utterance {
     utterance = "sample phrase"
   }
-  
+
   fulfillment_code_hook {
     enabled = true
   }
@@ -404,6 +419,7 @@ terraform apply
 ### Scaling Considerations
 
 For high traffic:
+
 1. Increase Lambda memory (improves CPU)
 2. Enable Lambda reserved concurrency
 3. Use Lex automated chatbot designer
