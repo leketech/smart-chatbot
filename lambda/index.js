@@ -9,7 +9,7 @@ const lexClient = new LexRuntimeV2Client({
   region: process.env.AWS_REGION || 'us-east-1',
 });
 
-export const handler = async (event) => {
+export const handler = async event => {
   // eslint-disable-next-line no-console
   console.log('Received event:', JSON.stringify(event, null, 2));
 
@@ -43,7 +43,7 @@ async function handleApiGatewayEvent(event) {
   let body;
   try {
     body = JSON.parse(event.body);
-  } catch (error) {
+  } catch (_) {
     body = {};
   }
 
@@ -72,15 +72,17 @@ async function handleApiGatewayEvent(event) {
       text: message,
     };
 
+    // eslint-disable-next-line no-console
     console.log('Calling Lex with params:', JSON.stringify(lexParams, null, 2));
 
     const command = new RecognizeTextCommand(lexParams);
     const lexResponse = await lexClient.send(command);
 
+    // eslint-disable-next-line no-console
     console.log('Lex response:', JSON.stringify(lexResponse, null, 2));
 
     // Extract the message from Lex response
-    let responseMessage = 'Sorry, I didn\'t understand that. Can you please rephrase?';
+    let responseMessage = "Sorry, I didn't understand that. Can you please rephrase?";
     if (lexResponse.messages && lexResponse.messages.length > 0) {
       responseMessage = lexResponse.messages[0].content;
     }
@@ -96,8 +98,9 @@ async function handleApiGatewayEvent(event) {
         sessionId: sessionId,
       }),
     };
-  } catch (error) {
-    console.error('Error calling Lex:', error);
+  } catch (_) {
+    // eslint-disable-next-line no-console
+    console.error('Error calling Lex:');
 
     // Fallback to simple response logic
     return getFallbackResponse(message);
@@ -181,7 +184,7 @@ function getFallbackResponse(message) {
         'Access-Control-Allow-Origin': '*',
       },
       body: JSON.stringify({
-        message: 'You\'re welcome! Is there anything else I can help you with?',
+        message: "You're welcome! Is there anything else I can help you with?",
         sessionId: 'default-session',
       }),
     };
