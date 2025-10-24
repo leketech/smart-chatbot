@@ -151,7 +151,7 @@ resource "aws_lambda_function" "chatbot" {
       LOG_LEVEL        = var.log_level
       PROJECT          = var.project_name
       LEX_BOT_ID       = aws_lexv2models_bot.chatbot.id
-      LEX_BOT_ALIAS_ID = "prod"
+      LEX_BOT_ALIAS_ID = "prod-${var.environment}"
     }
   }
 
@@ -211,12 +211,16 @@ resource "aws_iam_role_policy_attachment" "lex_policy" {
 # Lex Bot (Simplified)
 ######################
 resource "aws_lexv2models_bot" "chatbot" {
-  name                        = "SmartChatbotDevBot"
+  name                        = "SmartChatbotDevBot-${var.environment}"
   role_arn                    = aws_iam_role.lex_role.arn
   idle_session_ttl_in_seconds = 300
 
   data_privacy {
     child_directed = false
+  }
+
+  lifecycle {
+    prevent_destroy = false
   }
 }
 
