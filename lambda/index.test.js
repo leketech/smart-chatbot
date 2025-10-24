@@ -55,7 +55,7 @@ describe('Lambda Handler', () => {
     expect(response.sessionState.intent.state).toBe('Fulfilled');
     expect(response.messages[0].contentType).toBe('PlainText');
     expect(response.messages[0].content).toContain(
-      'Hello! Welcome to our smart chatbot',
+      'Hello! Welcome to our smart chatbot'
     );
   });
 });

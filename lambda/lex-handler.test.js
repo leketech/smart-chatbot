@@ -14,7 +14,7 @@ describe('Lex Handler', () => {
     const response = await handler(event);
 
     expect(response.messages[0].content).toContain(
-      'Hello! Welcome to our smart chatbot',
+      'Hello! Welcome to our smart chatbot'
     );
   });
 
@@ -31,7 +31,7 @@ describe('Lex Handler', () => {
     const response = await handler(event);
 
     expect(response.messages[0].content).toContain(
-      'I can help you with general questions',
+      'I can help you with general questions'
     );
   });
 
@@ -48,7 +48,7 @@ describe('Lex Handler', () => {
     const response = await handler(event);
 
     expect(response.messages[0].content).toContain(
-      "I'm sorry, I didn't understand that",
+      "I'm sorry, I didn't understand that"
     );
   });
 });
