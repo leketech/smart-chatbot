@@ -212,8 +212,9 @@ resource "aws_iam_role_policy_attachment" "lex_policy" {
 ######################
 resource "aws_lex_bot" "chatbot" {
   name                        = "SmartChatbotDevBot"
-  role_arn                    = aws_iam_role.lex_role.arn
+  iam_role_arn               = aws_iam_role.lex_role.arn
   idle_session_ttl_in_seconds = 300
+  child_directed             = false
 
   abort_statement {
     message {
