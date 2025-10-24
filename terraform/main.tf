@@ -151,7 +151,7 @@ resource "aws_lambda_function" "chatbot" {
       LOG_LEVEL        = var.log_level
       PROJECT          = var.project_name
       LEX_BOT_ID       = aws_lexv2models_bot.chatbot.id
-      LEX_BOT_ALIAS_ID = aws_lexv2_models_bot_alias.prod.id
+      LEX_BOT_ALIAS_ID = "prod"
     }
   }
 
