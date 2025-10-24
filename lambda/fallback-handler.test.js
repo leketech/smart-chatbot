@@ -12,7 +12,7 @@ describe('Fallback Handler', () => {
 
     // Mock the Lex client to throw an error to trigger fallback
     const response = await handler(event);
-    
+
     // Since we can't easily mock the AWS SDK in this test environment,
     // we'll test the getFallbackResponse function indirectly
     expect(response.statusCode).toBe(200);
@@ -28,7 +28,7 @@ describe('Fallback Handler', () => {
     };
 
     const response = await handler(event);
-    
+
     expect(response.statusCode).toBe(200);
   });
 
@@ -42,7 +42,7 @@ describe('Fallback Handler', () => {
     };
 
     const response = await handler(event);
-    
+
     expect(response.statusCode).toBe(200);
   });
 
@@ -56,7 +56,7 @@ describe('Fallback Handler', () => {
     };
 
     const response = await handler(event);
-    
+
     expect(response.statusCode).toBe(200);
   });
 
@@ -69,9 +69,8 @@ describe('Fallback Handler', () => {
       }),
     };
 
-
     const response = await handler(event);
-    
+
     expect(response.statusCode).toBe(200);
   });
 });

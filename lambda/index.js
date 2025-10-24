@@ -110,7 +110,6 @@ async function handleApiGatewayEvent(event) {
   }
 }
 
-
 function handleLexEvent(event) {
   let message = '';
 

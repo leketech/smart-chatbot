@@ -11,11 +11,11 @@ describe('Lambda Handler', () => {
     };
 
     const response = await handler(event);
-    
+
     expect(response.statusCode).toBe(200);
     expect(response.headers['Content-Type']).toBe('application/json');
     expect(response.headers['Access-Control-Allow-Origin']).toBe('*');
-    
+
     const body = JSON.parse(response.body);
     expect(body.sessionId).toBe('test-session');
   });
@@ -29,11 +29,11 @@ describe('Lambda Handler', () => {
     };
 
     const response = await handler(event);
-    
+
     expect(response.statusCode).toBe(400);
     expect(response.headers['Content-Type']).toBe('application/json');
     expect(response.headers['Access-Control-Allow-Origin']).toBe('*');
-    
+
     const body = JSON.parse(response.body);
     expect(body.error).toBe('Message is required');
   });
@@ -49,7 +49,7 @@ describe('Lambda Handler', () => {
     };
 
     const response = await handler(event);
-    
+
     expect(response.sessionState.dialogAction.type).toBe('Close');
     expect(response.sessionState.intent.name).toBe('CustomGreetingIntent');
     expect(response.sessionState.intent.state).toBe('Fulfilled');
