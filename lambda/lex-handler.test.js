@@ -6,14 +6,16 @@ describe('Lex Handler', () => {
       invocationSource: 'DialogCodeHook',
       sessionState: {
         intent: {
-          name: 'CustomGreetingIntent'
-        }
-      }
+          name: 'CustomGreetingIntent',
+        },
+      },
     };
 
     const response = await handler(event);
     
-    expect(response.messages[0].content).toContain('Hello! Welcome to our smart chatbot');
+    expect(response.messages[0].content).toContain(
+      'Hello! Welcome to our smart chatbot',
+    );
   });
 
   test('should handle CustomHelpIntent', async () => {
@@ -21,14 +23,16 @@ describe('Lex Handler', () => {
       invocationSource: 'DialogCodeHook',
       sessionState: {
         intent: {
-          name: 'CustomHelpIntent'
-        }
-      }
+          name: 'CustomHelpIntent',
+        },
+      },
     };
 
     const response = await handler(event);
     
-    expect(response.messages[0].content).toContain('I can help you with general questions');
+    expect(response.messages[0].content).toContain(
+      'I can help you with general questions',
+    );
   });
 
   test('should handle unknown intents with fallback response', async () => {
@@ -36,13 +40,16 @@ describe('Lex Handler', () => {
       invocationSource: 'DialogCodeHook',
       sessionState: {
         intent: {
-          name: 'UnknownIntent'
-        }
-      }
+          name: 'UnknownIntent',
+        },
+      },
     };
 
     const response = await handler(event);
     
-    expect(response.messages[0].content).toContain("I'm sorry, I didn't understand that");
+    expect(response.messages[0].content).toContain(
+      "I'm sorry, I didn't understand that",
+    );
+
   });
 });

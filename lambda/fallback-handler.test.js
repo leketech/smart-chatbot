@@ -6,8 +6,8 @@ describe('Fallback Handler', () => {
       httpMethod: 'POST',
       body: JSON.stringify({
         message: 'hello',
-        sessionId: 'test-session'
-      })
+        sessionId: 'test-session',
+      }),
     };
 
     // Mock the Lex client to throw an error to trigger fallback
@@ -23,8 +23,8 @@ describe('Fallback Handler', () => {
       httpMethod: 'POST',
       body: JSON.stringify({
         message: 'help',
-        sessionId: 'test-session'
-      })
+        sessionId: 'test-session',
+      }),
     };
 
     const response = await handler(event);
@@ -37,8 +37,8 @@ describe('Fallback Handler', () => {
       httpMethod: 'POST',
       body: JSON.stringify({
         message: 'thank you',
-        sessionId: 'test-session'
-      })
+        sessionId: 'test-session',
+      }),
     };
 
     const response = await handler(event);
@@ -51,8 +51,8 @@ describe('Fallback Handler', () => {
       httpMethod: 'POST',
       body: JSON.stringify({
         message: 'goodbye',
-        sessionId: 'test-session'
-      })
+        sessionId: 'test-session',
+      }),
     };
 
     const response = await handler(event);
@@ -65,9 +65,10 @@ describe('Fallback Handler', () => {
       httpMethod: 'POST',
       body: JSON.stringify({
         message: 'unknown message',
-        sessionId: 'test-session'
-      })
+        sessionId: 'test-session',
+      }),
     };
+
 
     const response = await handler(event);
     

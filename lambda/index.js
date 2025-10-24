@@ -44,6 +44,8 @@ async function handleApiGatewayEvent(event) {
   try {
     body = JSON.parse(event.body);
   } catch (error) {
+    // eslint-disable-next-line no-console
+    console.error('Error parsing JSON:', error);
     body = {};
   }
 
@@ -108,6 +110,7 @@ async function handleApiGatewayEvent(event) {
   }
 }
 
+
 function handleLexEvent(event) {
   let message = '';
 
@@ -160,7 +163,8 @@ function getFallbackResponse(message) {
         'Access-Control-Allow-Origin': '*',
       },
       body: JSON.stringify({
-        message: 'Hello! Welcome to our smart chatbot. How can I help you today?',
+        message:
+          'Hello! Welcome to our smart chatbot. How can I help you today?',
         sessionId: 'default-session',
       }),
     };
@@ -189,9 +193,7 @@ function getFallbackResponse(message) {
         sessionId: 'default-session',
       }),
     };
-  } else if (
-    lowerMessage.includes('bye') || lowerMessage.includes('goodbye')
-  ) {
+  } else if (lowerMessage.includes('bye') || lowerMessage.includes('goodbye')) {
     return {
       statusCode: 200,
       headers: {
@@ -212,7 +214,8 @@ function getFallbackResponse(message) {
         'Access-Control-Allow-Origin': '*',
       },
       body: JSON.stringify({
-        message: "I'm sorry, I didn't understand that. Can you please rephrase?",
+        message:
+          "I'm sorry, I didn't understand that. Can you please rephrase?",
         sessionId: 'default-session',
       }),
     };

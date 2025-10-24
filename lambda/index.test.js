@@ -6,8 +6,8 @@ describe('Lambda Handler', () => {
       httpMethod: 'POST',
       body: JSON.stringify({
         message: 'hello',
-        sessionId: 'test-session'
-      })
+        sessionId: 'test-session',
+      }),
     };
 
     const response = await handler(event);
@@ -24,8 +24,8 @@ describe('Lambda Handler', () => {
     const event = {
       httpMethod: 'POST',
       body: JSON.stringify({
-        sessionId: 'test-session'
-      })
+        sessionId: 'test-session',
+      }),
     };
 
     const response = await handler(event);
@@ -43,9 +43,9 @@ describe('Lambda Handler', () => {
       invocationSource: 'DialogCodeHook',
       sessionState: {
         intent: {
-          name: 'CustomGreetingIntent'
-        }
-      }
+          name: 'CustomGreetingIntent',
+        },
+      },
     };
 
     const response = await handler(event);
@@ -54,6 +54,8 @@ describe('Lambda Handler', () => {
     expect(response.sessionState.intent.name).toBe('CustomGreetingIntent');
     expect(response.sessionState.intent.state).toBe('Fulfilled');
     expect(response.messages[0].contentType).toBe('PlainText');
-    expect(response.messages[0].content).toContain('Hello! Welcome to our smart chatbot');
+    expect(response.messages[0].content).toContain(
+      'Hello! Welcome to our smart chatbot',
+    );
   });
 });
