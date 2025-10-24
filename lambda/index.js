@@ -201,7 +201,7 @@ function getFallbackResponse(message, sessionId = 'default-session') {
       },
       body: JSON.stringify({
         message:
-          'Goodbye! Feel free to come back if you have more questions.',
+   'Goodbye! Feel free to come back if you have more questions.',
         sessionId: sessionId,
       }),
     };
