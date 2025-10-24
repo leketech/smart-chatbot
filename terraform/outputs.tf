@@ -12,5 +12,5 @@ output "api_endpoint_url" {
 
 output "lex_bot_id" {
   description = "ID of the Lex bot"
-  value       = aws_lexv2models_bot.chatbot.id
+  value       = aws_lex_bot.chatbot.id
 }
