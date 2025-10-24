@@ -5,8 +5,8 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "test": "jest --coverage --config=jest.config.cjs",
-    "test:watch": "jest --watch --config=jest.config.cjs",
+    "test": "jest --coverage --config=jest.config.js",
+    "test:watch": "jest --watch --config=jest.config.js",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "format": "prettier --write .",

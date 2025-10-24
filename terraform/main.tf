@@ -108,7 +108,7 @@ resource "aws_iam_role_policy" "lambda_lex" {
         ]
         Resource = [
           "arn:aws:lex:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:bot/${aws_lexv2models_bot.chatbot.id}:*",
-          "arn:aws:lex:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:bot-alias/${aws_lexv2models_bot.chatbot.id}/*"
+          "arn:aws:lex:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:bot-alias/${aws_lexv2models_bot.chatbot.id}/${aws_lexv2models_bot_alias.prod.id}"
         ]
       }
     ]
@@ -151,6 +151,7 @@ resource "aws_lambda_function" "chatbot" {
       LOG_LEVEL        = var.log_level
       PROJECT          = var.project_name
       LEX_BOT_ID       = aws_lexv2models_bot.chatbot.id
+      LEX_BOT_ALIAS_ID = aws_lexv2models_bot_alias.prod.id
     }
   }
 
@@ -347,6 +348,16 @@ resource "aws_lexv2models_bot_version" "v1" {
     aws_lexv2models_intent.greeting,
     aws_lexv2models_intent.help,
     aws_lexv2models_intent.fallback
+  ]
+}
+
+resource "aws_lexv2models_bot_alias" "prod" {
+  bot_id      = aws_lexv2models_bot.chatbot.id
+  bot_version = aws_lexv2models_bot_version.v1.bot_version
+  name        = "prod"
+
+  depends_on = [
+    aws_lexv2models_bot_version.v1
   ]
 }
 

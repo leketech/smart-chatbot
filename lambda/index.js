@@ -43,7 +43,7 @@ async function handleApiGatewayEvent(event) {
   let body;
   try {
     body = JSON.parse(event.body);
-  } catch (_error) {
+  } catch (error) {
     body = {};
   }
 
@@ -82,7 +82,8 @@ async function handleApiGatewayEvent(event) {
     console.log('Lex response:', JSON.stringify(lexResponse, null, 2));
 
     // Extract the message from Lex response
-    let responseMessage = "Sorry, I didn't understand that. Can you please rephrase?";
+    let responseMessage =
+      "Sorry, I didn't understand that. Can you please rephrase?";
     if (lexResponse.messages && lexResponse.messages.length > 0) {
       responseMessage = lexResponse.messages[0].content;
     }
@@ -98,9 +99,9 @@ async function handleApiGatewayEvent(event) {
         sessionId: sessionId,
       }),
     };
-  } catch (_error) {
+  } catch (error) {
     // eslint-disable-next-line no-console
-    console.error('Error calling Lex:');
+    console.error('Error calling Lex:', error);
 
     // Fallback to simple response logic
     return getFallbackResponse(message);
@@ -189,8 +190,7 @@ function getFallbackResponse(message) {
       }),
     };
   } else if (
-    lowerMessage.includes('bye') ||
-    lowerMessage.includes('goodbye')
+    lowerMessage.includes('bye') || lowerMessage.includes('goodbye')
   ) {
     return {
       statusCode: 200,
