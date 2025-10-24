@@ -200,8 +200,7 @@ function getFallbackResponse(message, sessionId = 'default-session') {
         'Access-Control-Allow-Origin': '*',
       },
       body: JSON.stringify({
-        message:
-          'Goodbye! Feel free to come back if you have more questions.',
+        message: 'Goodbye! Feel free to come back if you have more questions.',
         sessionId: sessionId,
       }),
     };
