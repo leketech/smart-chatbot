@@ -6,14 +6,14 @@ jest.mock('@aws-sdk/client-lex-runtime-v2', () => {
         send: jest.fn().mockResolvedValue({
           messages: [
             {
-              content: 'Mocked response from Lex'
-            }
-          ]
-        })
+              content: 'Mocked response from Lex',
+            },
+          ],
+        }),
       };
     }),
     RecognizeTextCommand: jest.fn().mockImplementation((params) => {
       return params;
-    })
+    }),
   };
 });
