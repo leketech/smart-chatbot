@@ -43,7 +43,7 @@ async function handleApiGatewayEvent(event) {
   let body;
   try {
     body = JSON.parse(event.body);
-  } catch (_) {
+  } catch (_error) {
     body = {};
   }
 
@@ -98,7 +98,7 @@ async function handleApiGatewayEvent(event) {
         sessionId: sessionId,
       }),
     };
-  } catch (_) {
+  } catch (_error) {
     // eslint-disable-next-line no-console
     console.error('Error calling Lex:');
 
