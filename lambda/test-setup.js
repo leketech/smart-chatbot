@@ -12,7 +12,7 @@ jest.mock('@aws-sdk/client-lex-runtime-v2', () => {
         }),
       };
     }),
-    RecognizeTextCommand: jest.fn().mockImplementation((params) => {
+    RecognizeTextCommand: jest.fn().mockImplementation(params => {
       return params;
     }),
   };
